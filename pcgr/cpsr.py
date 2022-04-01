@@ -523,8 +523,12 @@ def run_cpsr(arg_dict, host_directories, DOCKER_IMAGE_VERSION):
       custom_bed = os.path.join(output_dir, str(arg_dict['sample_id']) + '.' + str(pcgr_model) + '.' + str(arg_dict['genome_assembly']) + '.custom_list.bed')
 
       ## File names for assembly-specific genome fasta files (VEP)
-      fasta_assembly = os.path.join(vep_dir, "homo_sapiens", str(VEP_VERSION) + "_" + str(VEP_ASSEMBLY), "Homo_sapiens." + str(VEP_ASSEMBLY) + ".dna.primary_assembly.fa.gz")
-      ancestor_assembly = os.path.join(vep_dir, "homo_sapiens", str(VEP_VERSION) + "_" + str(VEP_ASSEMBLY), "human_ancestor.fa.gz")
+      # Path for human genome assembly file (FASTA), and human ancestor
+      fasta_assembly = os.path.join(vep_dir, 'homo_sapiens', f'{pcgr_vars.VEP_VERSION}_{VEP_ASSEMBLY}', f'Homo_sapiens.{VEP_ASSEMBLY}.dna.primary_assembly.fa.gz')
+      ancestor_assembly = os.path.join(vep_dir, "homo_sapiens", f'{pcgr_vars.VEP_VERSION}_{VEP_ASSEMBLY}', f'human_ancestor.fa.gz')
+
+      #fasta_assembly = os.path.join(vep_dir, "homo_sapiens", str(VEP_VERSION) + "_" + str(VEP_ASSEMBLY), "Homo_sapiens." + str(VEP_ASSEMBLY) + ".dna.primary_assembly.fa.gz")
+      #ancestor_assembly = os.path.join(vep_dir, "homo_sapiens", str(VEP_VERSION) + "_" + str(VEP_ASSEMBLY), "human_ancestor.fa.gz")
 
       ## Set all flags used in VEP run
       plugins_in_use = "NearestExonJB, LoF"
@@ -551,9 +555,7 @@ def run_cpsr(arg_dict, host_directories, DOCKER_IMAGE_VERSION):
          conda_prefix = os.path.dirname(os.path.dirname(sys.executable))
          loftee_dir = os.path.join(conda_prefix, 'share', 'loftee')
          assert os.path.isdir(loftee_dir), 'LoF VEP plugin is not found in ' + loftee_dir + '. Please make sure you installed pcgr conda package and have corresponding conda environment active.'
-         vep_options += " --plugin LoF,loftee_path:" + loftee_dir + ",human_ancestor_fa:" + str(ancestor_assembly) + ",use_gerp_end_trunc:0 --dir_plugins " + loftee_dir
-      else:
-         vep_options += " --plugin LoF,loftee_path:" + loftee_dir + ",human_ancestor_fa:" + str(ancestor_assembly)  + ",use_gerp_end_trunc:0 --dir_plugins " + loftee_dir
+      vep_options += " --plugin LoF,loftee_path:" + loftee_dir + ",human_ancestor_fa:" + str(ancestor_assembly)  + ",use_gerp_end_trunc:0 --dir_plugins " + loftee_dir
       if not debug:
          vep_options += " --quiet"
 
@@ -561,10 +563,10 @@ def run_cpsr(arg_dict, host_directories, DOCKER_IMAGE_VERSION):
       vep_main_command = f'{docker_command_run1} {utils.get_perl_exports()} && vep --input_file {input_vcf_cpsr_ready} --output_file {vep_vcf} {vep_options} --fasta {fasta_assembly} {docker_command_run_end}'
       vep_bgzip_command = str(docker_command_run1) + "bgzip -f " + str(vep_vcf) + docker_command_run_end
       vep_tabix_command = str(docker_command_run1) + "tabix -f -p vcf " + str(vep_vcf) + ".gz" + docker_command_run_end
-      logger = getlogger('cpsr-vep')
 
       ## CPSR|VEP - run Variant Effect Predictor on query VCF with LoF and NearestExonJB plugins
       print()
+      logger = getlogger('cpsr-vep')
       logger.info("STEP 1: Basic variant annotation with Variant Effect Predictor (" + str(VEP_VERSION) + ", GENCODE release " + \
          str(GENCODE_VERSION) + ", " + str(arg_dict['genome_assembly']) + ")")
       logger.info("VEP configuration - one primary consequence block pr. alternative allele (--flag_pick_allele)")

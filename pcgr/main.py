@@ -348,8 +348,11 @@ def run_pcgr(arg_dict, host_directories, config_options, DOCKER_IMAGE_VERSION):
         vep_vcfanno_annotated_vcf = re.sub(r"\.vcfanno", ".vcfanno.annotated", vep_vcfanno_vcf) + ".gz"
         vep_vcfanno_annotated_pass_vcf = re.sub(r"\.vcfanno", ".vcfanno.annotated.pass", vep_vcfanno_vcf) + ".gz"
 
-        # Path for human genome assembly file (FASTA)
+        # Path for human genome assembly file (FASTA), and human ancestor
         fasta_assembly = os.path.join(vep_dir, 'homo_sapiens', f'{pcgr_vars.VEP_VERSION}_{VEP_ASSEMBLY}', f'Homo_sapiens.{VEP_ASSEMBLY}.dna.primary_assembly.fa.gz')
+        ancestor_assembly = os.path.join(vep_dir, "homo_sapiens", f'{pcgr_vars.VEP_VERSION}_{VEP_ASSEMBLY}', f'human_ancestor.fa.gz')
+
+        plugins_in_use = "NearestExonJB, LoF"
 
         # List all VEP flags used when calling VEP
         vep_flags = (
@@ -362,7 +365,8 @@ def run_pcgr(arg_dict, host_directories, config_options, DOCKER_IMAGE_VERSION):
                 f'{config_options["other"]["vep_buffer_size"]} --species homo_sapiens --assembly {VEP_ASSEMBLY} --offline --fork '
                 f'{config_options["other"]["vep_n_forks"]} {vep_flags} --dir {vep_dir}'
                 )
-        
+
+        loftee_dir = '/opt/vep/src/ensembl-vep/modules'
         gencode_set_in_use = "GENCODE - all transcripts"
         vep_options += f' --cache_version {pcgr_vars.VEP_VERSION}'
         if config_options['other']['vep_no_intergenic'] == 1:
@@ -377,6 +381,14 @@ def run_pcgr(arg_dict, host_directories, config_options, DOCKER_IMAGE_VERSION):
         if debug:
             vep_options += ' --verbose'
 
+        ## Add arguments for loss-of-function prediction with LOFTEE
+        if not DOCKER_IMAGE_VERSION:
+            conda_prefix = os.path.dirname(os.path.dirname(sys.executable))
+            loftee_dir = os.path.join(conda_prefix, 'share', 'loftee')
+            assert os.path.isdir(loftee_dir), 'LoF VEP plugin is not found in ' + loftee_dir + '. Please make sure you installed pcgr conda package and have corresponding conda environment active.'
+        
+        vep_options += " --plugin LoF,loftee_path:" + loftee_dir + ",human_ancestor_fa:" + str(ancestor_assembly)  + ",use_gerp_end_trunc:0 --dir_plugins " + loftee_dir
+
         # Compose full VEP command
         vep_main_command = f'{docker_cmd_run1} {utils.get_perl_exports()} && vep --input_file {input_vcf_pcgr_ready} --output_file {vep_vcf} {vep_options} --fasta {fasta_assembly} {docker_cmd_run_end}'
         vep_bgzip_command = f'{docker_cmd_run1} bgzip -f -c {vep_vcf} > {vep_vcf}.gz {docker_cmd_run_end}'
@@ -390,6 +402,7 @@ def run_pcgr(arg_dict, host_directories, config_options, DOCKER_IMAGE_VERSION):
         logger.info(f'VEP configuration - transcript pick order: {config_options["other"]["vep_pick_order"]}')
         logger.info(f'VEP configuration - transcript pick order: See more at https://www.ensembl.org/info/docs/tools/vep/script/vep_other.html#pick_options')
         logger.info(f'VEP configuration - GENCODE set: {gencode_set_in_use}')
+        logger.info(f'VEP configuration - plugins in use: {plugins_in_use}')
         logger.info(f'VEP configuration - skip intergenic: {config_options["other"]["vep_no_intergenic"]}')
         logger.info(f'VEP configuration - regulatory annotation: {vep_regulatory_annotation}')
         logger.info(f'VEP configuration - buffer_size/number of forks: {arg_dict["vep_buffer_size"]}/{arg_dict["vep_n_forks"]}')
@@ -468,6 +481,8 @@ def run_pcgr(arg_dict, host_directories, config_options, DOCKER_IMAGE_VERSION):
         if not debug:
             check_subprocess(logger, clean_command, debug)
 
+
+        ## Pre-filter PCGR-annotated data for large variant sets (WGS/WES)
         if config_options['assay'] == 'WGS' or config_options['assay'] == 'WES':
 
             output_pass_tsv_gz = str(output_pass_tsv) + '.gz'
