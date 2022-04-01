@@ -1,8 +1,43 @@
+#---- pcgr_acmg_oncogenicity ----#
+pcgr_acmg_oncogenicity <- list()
+pcgr_acmg_oncogenicity[["score2tier"]] <- data.frame()
+pcgr_acmg_oncogenicity[["evidence_codes"]] <-
+  utils::read.table(file = "data-raw/pcgr_acmg_oncogenicity_evidence.tsv",
+                    header = T, stringsAsFactors = F,
+                    comment.char = "", na.strings = c("NA"),
+                    sep = "\t")
+
+pcgr_acmg_oncogenicity[["score2tier"]] <-
+  data.frame("ONCOGENICITY_CLASSIFICATION" = "Pathogenic",
+             "ONCOGENICITY_SCORE" = "<b>[5, ]</b>")
+pcgr_acmg_oncogenicity[["score2tier"]] <-
+  dplyr::bind_rows(
+    pcgr_acmg_oncogenicity[["score2tier"]],
+    data.frame("ONCOGENICITY_CLASSIFICATION" = "Likely Pathogenic",
+               "ONCOGENICITY_SCORE" = "<b>[2.5, 4.5]</b>"))
+pcgr_acmg_oncogenicity[["score2tier"]] <-
+  dplyr::bind_rows(
+    pcgr_acmg_oncogenicity[["score2tier"]],
+    data.frame("ONCOGENICITY_CLASSIFICATION" = "VUS",
+               "ONCOGENICITY_SCORE" = "<b>[-1.0, 2.0]</b>"))
+pcgr_acmg_oncogenicity[["score2tier"]] <-
+  dplyr::bind_rows(
+    pcgr_acmg_oncogenicity[["score2tier"]],
+    data.frame("ONCOGENICITY_CLASSIFICATION" = "Likely Benign",
+               "ONCOGENICITY_SCORE" = "<b>[-4.5, -1.5]</b>"))
+pcgr_acmg_oncogenicity[["score2tier"]] <-
+  dplyr::bind_rows(
+    pcgr_acmg_oncogenicity[["score2tier"]],
+    data.frame("ONCOGENICITY_CLASSIFICATION" = "Benign",
+               "ONCOGENICITY_SCORE" = "<b>[, -5]</b>"))
+
+
+
 #---- cpsr_acmg ----#
 cpsr_acmg <- list()
 cpsr_acmg[["score2tier"]] <- data.frame()
 cpsr_acmg[["evidence_codes"]] <-
-  utils::read.table(file = "data-raw/acmg_evidence.tsv",
+  utils::read.table(file = "data-raw/cpsr_acmg_evidence.tsv",
              header = T, stringsAsFactors = F,
              comment.char = "", na.strings = c("NA"),
              sep = "\t")

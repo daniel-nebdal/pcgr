@@ -1477,10 +1477,11 @@ get_calls <- function(tsv_gz_file,
     !is.null(oncotree), msg = "Argument 'oncotree' cannot not be NULL"))
 
   ## read VCF data
-  vcf_data_df <- utils::read.table(gzfile(tsv_gz_file), skip = n_lines_skip,
-                            sep = "\t", header = T, stringsAsFactors = F,
-                            quote = "", comment.char = "",
-                            na.strings = c("."))
+  vcf_data_df <- utils::read.table(
+    gzfile(tsv_gz_file), skip = n_lines_skip,
+    sep = "\t", header = T, stringsAsFactors = F,
+    quote = "", comment.char = "",
+    na.strings = c("."))
   if (nrow(vcf_data_df) == 0) return(vcf_data_df)
 
   ## Fix erroneous parsing of cases where all
@@ -1542,9 +1543,12 @@ get_calls <- function(tsv_gz_file,
     pcgrr::data_integrity_check(pcgr_data = pcgr_data,
                                 config = config,
                                 workflow = wflow) %>%
-    dplyr::mutate(GENOMIC_CHANGE = paste0(.data$CHROM, ":g.", .data$POS, .data$REF, ">", .data$ALT)) %>%
-    dplyr::mutate(VAR_ID = paste(.data$CHROM, .data$POS, .data$REF, .data$ALT, sep = "_")) %>%
-    pcgrr::detect_vcf_sample_name(cpsr = cpsr, sample_name = sample_name) %>%
+    dplyr::mutate(GENOMIC_CHANGE = paste0(
+      .data$CHROM, ":g.", .data$POS, .data$REF, ">", .data$ALT)) %>%
+    dplyr::mutate(VAR_ID = paste(
+      .data$CHROM, .data$POS, .data$REF, .data$ALT, sep = "_")) %>%
+    pcgrr::detect_vcf_sample_name(
+      cpsr = cpsr, sample_name = sample_name) %>%
     pcgrr::get_ordinary_chromosomes(chrom_var = "CHROM")
   if (nrow(vcf_data_df) == 0) return(vcf_data_df)
 
@@ -1559,21 +1563,23 @@ get_calls <- function(tsv_gz_file,
   }
 
 
-  ##
+  if ("LoF" %in% colnames(vcf_data_df)) {
+    vcf_data_df <- vcf_data_df %>%
+      dplyr::mutate(
+        LOSS_OF_FUNCTION = dplyr::if_else(
+          !is.na(.data$LoF) &
+            .data$LoF == "HC",
+          TRUE, FALSE, FALSE)) %>%
+      ## Ignore LoF predictions for missense variants (bug in LofTee?)
+      dplyr::mutate(
+        LOSS_OF_FUNCTION = dplyr::if_else(
+          !is.na(.data$CONSEQUENCE) &
+            .data$CONSEQUENCE == "missense_variant" &
+            .data$LOSS_OF_FUNCTION == TRUE,
+          FALSE, .data$LOSS_OF_FUNCTION))
+  }
+
   if (cpsr == T) {
-    if ("LoF" %in% colnames(vcf_data_df)) {
-      vcf_data_df <- vcf_data_df %>%
-        dplyr::mutate(
-          LOSS_OF_FUNCTION = dplyr::if_else(
-            !is.na(.data$LoF) & .data$LoF == "HC",
-            TRUE, FALSE, FALSE)) %>%
-        ## Ignore LoF predictions for missense variants (bug in LofTee?)
-        dplyr::mutate(
-          LOSS_OF_FUNCTION = dplyr::if_else(
-            !is.na(.data$CONSEQUENCE) &
-              .data$CONSEQUENCE == "missense_variant" &
-              .data$LOSS_OF_FUNCTION == T, FALSE, .data$LOSS_OF_FUNCTION))
-    }
     ## Add GWAS annotations (phenotypes)
     if (!is.null(config[["gwas"]][["p_value_min"]])) {
       vcf_data_df <- vcf_data_df %>%
@@ -1597,7 +1603,8 @@ get_calls <- function(tsv_gz_file,
     vcf_data_df <- vcf_data_df %>%
       pcgrr::append_read_support(config = config)
 
-    if ("maf_tmp" %in% names(maf_filenames) & "maf" %in% names(maf_filenames)) {
+    if ("maf_tmp" %in% names(maf_filenames) &
+        "maf" %in% names(maf_filenames)) {
       pcgrr::update_maf_allelic_support(
         vcf_data_df, maf_filenames[["maf_tmp"]], maf_filenames[["maf"]])
     }
@@ -1745,7 +1752,7 @@ get_calls <- function(tsv_gz_file,
       strings = c("VEP_ALL_CSQ",
                   "REGULATORY_ANNOTATION",
                   "DOCM_DISEASE",
-                  "MUTATION_HOTSPOT_CANCERTYPE",
+                  #"MUTATION_HOTSPOT_CANCERTYPE",
                   "ICGC_PCAWG_OCCURRENCE"),
       pattern = ",", replacement = ", ", replace_all = T)
 

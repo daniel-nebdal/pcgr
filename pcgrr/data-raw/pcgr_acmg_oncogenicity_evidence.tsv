@@ -1,0 +1,16 @@
+pcgr_onc_evidence_code	category	oncogenicity_pole	category_long	description	onc_score
+ACMG_SBVS1	clinpop	B	Clinical - population frequency	Very high MAF (> 5% in gnomAD - any five major continental pops)	-8
+ACMG_SBS1	clinpop	B	Clinical - population frequency	High MAF (> 1% in gnomAD - any five major continental pops)	-4
+ACMG_SBP1	funccomp	B	Functional - computational & predictive	Multiple lines (>=7) of computational evidence support a benign effect on the gene or gene product (conservation, evolutionary, splicing impact, etc. - from dbNSFP	-1
+ACMG_SBP2	funcvar	B	Functional - variant effect	Silent and intronic changes outside of the consensus splice site	-1
+ACMG_OVS1	funcvar	P	Functional - variant effect	Null variant - predicted as LoF by LOFTEE - in tumor suppressor gene	8
+ACMG_OS1	funcvar	P	Functional - variant effect	Same amino acid change as previously established oncogenic variant (using this standard)	4
+ACMG_OS3	funcvar	P	Functional - variant effect	Located in a mutation hotspot (cancerhotspots.org). >= 50 samples with a somatic variant at the same AA position, and minimum 10 samples with the same amino acid change	4
+ACMG_OM1	funcvar	P	Functional - variant effect	Located in a critical and well-established part of a functional domain (active site of enzyme)	2
+ACMG_OM2	funcvar	P	Functional - variant effect	Protein length changes as a result of in-frame deletions/insertions in a known oncogene/tumor suppressor genes or stop-loss variants in atumor suppressor gene	2
+ACMG_OM3	funcvar	P	Functional - variant effect	Missense variant at an amino acid residue where a different missense variant determined to be oncogenic (using this standard) has been documented. Amino acid difference from reference amino acid should be greater or at least approximately the same as for missense change determined to be oncogenic	2
+ACMG_OM4	funcvar	P	Functional - variant effect	Located in a mutation hotspot (cancerhotspots.org). < 50 samples with a somatic variant at the same AA position, and minimum 10 samples with the same amino acid change. Not applicable if OM1/OM3 is applicable	2
+ACMG_OP1	funccomp	P	Functional - computational and predictive	Multiple lines (>=7) of computational evidence support a damaging effect on the gene or gene product (conservation, evolutionary, splicing impact, etc. - from dbNSFP	1
+ACMG_OP2	funcvar	P	Functional - variant effect	Somatic variant in a gene in a malignancy with a single genetic etiology. Example: retinoblastoma is caused by bi-allelic RB1 inactivation	1
+ACMG_OP3	funcvar	P	Functional - variant effect	Located in a mutation hotspot (cancerhotspots.org). < 10 samples with the same amino acid change. Not applicable if OM1/OM3 is applicable	1
+ACMG_OP4	clinpop	P	Functional - variant effect	Absent from controls (gnomAD) / very low MAF	1
